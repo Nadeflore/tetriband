@@ -28,9 +28,13 @@ try {
                 const visiblePlayAreaWidthPx = visiblePlayAreaWidth * blockSize
                 const visiblePlayAreaHeightPx = visiblePlayAreaHeight * blockSize
 
+                const playAreaPadding = (screenWidth - visiblePlayAreaWidthPx) / 2;
+
                 const holdHeight = (screenHeight - visiblePlayAreaHeightPx) / 2
                 const rotateHeight = visiblePlayAreaHeightPx / 2
                 const moveHeight = visiblePlayAreaHeightPx / 2
+
+
                 const piecesRotationsCoords = [
                     // I (center coordinates first so that test is always within bound)
                     [
@@ -111,15 +115,17 @@ try {
                 })
 
                 const playAreaWidgets = []
+                const playAreaFontArray = [0, 1, 2, 3, 4, 5, 6, 7, 0, 0].map(t => `blocks/${t}.png`)
                 for (let y = 0; y < visiblePlayAreaHeight; y++) {
                     const widgetsRow = []
-                    for (let x = 0; x < visiblePlayAreaWidth; x++) {
+                    for (let x = 0; x < 2; x++) {
                         widgetsRow.push(
-                            hmUI.createWidget(hmUI.widget.IMG, {
-                                x: x * blockSize + (screenWidth - visiblePlayAreaWidthPx) / 2,
+                            hmUI.createWidget(hmUI.widget.TEXT_IMG, {
+                                x: x * visiblePlayAreaWidthPx / 2 + playAreaPadding,
                                 y: holdHeight + (visiblePlayAreaHeight - y - 1) * blockSize,
-                                w: blockSize,
+                                w: visiblePlayAreaWidthPx / 2,
                                 h: blockSize,
+                                font_array: playAreaFontArray,
                                 show_level: hmUI.show_level.ONLY_NORMAL
                             })
                         )
@@ -157,6 +163,7 @@ try {
                     // Check game over
                     if (!canMoveTo(fallingPieceState)) {
                         playArea = generateEmptyPlayArea()
+                        refreshPlayArea()
                         generateNewPiece()
                     }
 
@@ -197,17 +204,28 @@ try {
 
                 function refreshPlayArea() {
                     for (let y = 0; y < visiblePlayAreaHeight; y++) {
-                        for (let x = 0; x < visiblePlayAreaWidth; x++) {
-                            setDisplayBlock(x, y, playArea[y + 1][x + 1])
+                        for (let x = 0; x < 2; x++) {
+                            const text = playArea[y + 1].slice(1 + x * 5, 6 + x * 5).join('')
+                            const match = text.match(/^(0*)(.*?)(0*)$/)
+                            const params = {
+                                x: playAreaPadding + match[1].length * blockSize + x * visiblePlayAreaWidthPx / 2,
+                                text: match[2]
+                            }
+                            const widget = playAreaWidgets[y][x]
+                            // widget.setProperty(hmUI.prop.MORE, params)
+                            widget.setProperty(hmUI.prop.X, params.x)
+                            widget.setProperty(hmUI.prop.TEXT, params.text)
                         }
                     }
+
+                    // TODO TEMP
                     holdPiece.setProperty(hmUI.prop.SRC, `tetrominos/${fallingPieceType}.png`)
                 }
 
                 function refreshFallingPiece(updateType = false) {
                     getFallingPieceCoordinates(fallingPieceState).forEach((coord, i) => {
                         const updatedParams = {
-                            x: coord[0] * blockSize + (screenWidth - visiblePlayAreaWidthPx) / 2,
+                            x: coord[0] * blockSize + playAreaPadding,
                             y: holdHeight + (visiblePlayAreaHeight - coord[1] - 1) * blockSize,
                         }
                         if (updateType) {
@@ -215,15 +233,6 @@ try {
                         }
                         fallingPieceWidgets[i].setProperty(hmUI.prop.MORE, updatedParams)
                     })
-                }
-
-                function setDisplayBlock(x, y, blockType) {
-                    if (blockType && blockType < 8) {
-                        playAreaWidgets[y][x].setProperty(hmUI.prop.SRC, `blocks/${blockType}.png`)
-                        playAreaWidgets[y][x].setProperty(hmUI.prop.VISIBLE, true)
-                    } else {
-                        playAreaWidgets[y][x].setProperty(hmUI.prop.VISIBLE, false)
-                    }
                 }
 
                 function lockFallingPiece() {
@@ -341,7 +350,7 @@ try {
             onDestory() {
                 console.log("index page.js on destory invoke");
             }
-        })
+        }) // end Watchface
     })()
 } catch (n) {
     console.log(n)
