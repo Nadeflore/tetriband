@@ -15,9 +15,12 @@ try {
         g.module = DeviceRuntimeCore.WatchFace({
             init_view() {
                 console.log("Initview called")
+
+
+                // Constants and computed values
+
                 const screenWidth = 192
                 const screenHeight = 490
-
 
                 const visiblePlayAreaWidth = 10
                 const visiblePlayAreaHeight = 20
@@ -33,7 +36,6 @@ try {
                 const holdHeight = (screenHeight - visiblePlayAreaHeightPx) / 2
                 const rotateHeight = visiblePlayAreaHeightPx / 2
                 const moveHeight = visiblePlayAreaHeightPx / 2
-
 
                 const piecesRotationsCoords = [
                     // I (center coordinates first so that test is always within bound)
@@ -87,8 +89,9 @@ try {
                     ]
                 ]
 
+                // State of the game
 
-                let fallingPieceType = 1;
+                const currentAndNextPieces = new Array(4).fill(0)
 
                 let fallingPieceState = {
                     x: 3,
@@ -97,6 +100,9 @@ try {
                 }
 
                 let playArea = generateEmptyPlayArea()
+
+
+                // Widgeets
 
                 // background
                 hmUI.createWidget(hmUI.widget.IMG, {
@@ -110,7 +116,6 @@ try {
                 const holdPiece = hmUI.createWidget(hmUI.widget.IMG, {
                     x: 35,
                     y: 25,
-                    src: 'tetrominos/1.png',
                     show_level: hmUI.show_level.ONLY_NORMAL
                 })
 
@@ -133,16 +138,26 @@ try {
                     playAreaWidgets.push(widgetsRow)
                 }
 
-
                 const fallingPieceWidgets = new Array(4).fill(0).map(() => hmUI.createWidget(hmUI.widget.IMG, {
                     w: blockSize,
                     h: blockSize,
                     show_level: hmUI.show_level.ONLY_NORMAL
                 }))
 
-                generateNewPiece()
+                const nextPieceWidgets = new Array(3).fill(0).map((_, i) => hmUI.createWidget(hmUI.widget.IMG, {
+                    x: 32 + 45 * i,
+                    y: 437,
+                    show_level: hmUI.show_level.ONLY_NORMAL
+                }))
+
+
+                // Init game state
+                setUpCurrentAndNextPieces()
 
                 refreshFallingPiece(true)
+
+
+                // Functions definition
 
                 function generateEmptyPlayArea() {
                     return new Array(playAreaHeight).fill(0).map((v, y) => new Array(playAreaWidth).fill(0).map((w, x) => (x == 0 || x == playAreaWidth - 1 || y == 0) ? 100 : 0));
@@ -152,21 +167,51 @@ try {
                     return new Array(playAreaWidth).fill(0).map((w, x) => (x == 0 || x == playAreaWidth - 1) ? 100 : 0)
                 }
 
-                function generateNewPiece() {
+                function generateNewRandomPiece() {
+                    let newPiece
+                    for (let i = 0; i < 6; i++) {
+                        newPiece = Math.floor(Math.random() * 7) + 1;
+
+                        if (!currentAndNextPieces.includes(newPiece)) {
+                            return newPiece
+                        }
+                    }
+                    console.error("Could not generate unique new pice")
+                    return newPiece
+                }
+
+                function setUpCurrentAndNextPieces() {
+                    currentAndNextPieces.forEach((_, i) => { currentAndNextPieces[i] = generateNewRandomPiece() })
+                    refreshNextPieces()
+                }
+
+                function handleNewPiece() {
+                    // try to generate new random piece that is not same of the last 4
+                    const newPiece = generateNewRandomPiece()
+
+                    // Shift to next piece
+                    currentAndNextPieces.shift()
+
+                    // Add newly generated at the end
+                    currentAndNextPieces.push(newPiece)
+
+                    // Reset falling piece position
                     fallingPieceState = {
                         x: 3,
                         y: 17,
                         rotation: 0
                     };
-                    fallingPieceType = Math.floor(Math.random() * 7) + 1;
 
                     // Check game over
                     if (!canMoveTo(fallingPieceState)) {
+                        // Reset play area
                         playArea = generateEmptyPlayArea()
                         refreshPlayArea()
-                        generateNewPiece()
+                        setUpCurrentAndNextPieces()
                     }
 
+                    // Refresh display
+                    refreshNextPieces()
                     refreshFallingPiece(true)
                 }
 
@@ -199,7 +244,7 @@ try {
                 }
 
                 function getFallingPieceCoordinates({ x, y, rotation }) {
-                    return piecesRotationsCoords[fallingPieceType - 1][rotation].map(coord => [coord[0] + x, coord[1] + y])
+                    return piecesRotationsCoords[currentAndNextPieces[0] - 1][rotation].map(coord => [coord[0] + x, coord[1] + y])
                 }
 
                 function refreshPlayArea() {
@@ -212,14 +257,11 @@ try {
                                 text: match[2]
                             }
                             const widget = playAreaWidgets[y][x]
-                            // widget.setProperty(hmUI.prop.MORE, params)
+                            widget.setProperty(hmUI.prop.MORE, params)
                             widget.setProperty(hmUI.prop.X, params.x)
                             widget.setProperty(hmUI.prop.TEXT, params.text)
                         }
                     }
-
-                    // TODO TEMP
-                    holdPiece.setProperty(hmUI.prop.SRC, `tetrominos/${fallingPieceType}.png`)
                 }
 
                 function refreshFallingPiece(updateType = false) {
@@ -229,21 +271,27 @@ try {
                             y: holdHeight + (visiblePlayAreaHeight - coord[1] - 1) * blockSize,
                         }
                         if (updateType) {
-                            updatedParams.src = `blocks/${fallingPieceType}.png`
+                            updatedParams.src = `blocks/${currentAndNextPieces[0]}.png`
                         }
                         fallingPieceWidgets[i].setProperty(hmUI.prop.MORE, updatedParams)
                     })
                 }
 
+                function refreshNextPieces() {
+                    nextPieceWidgets.forEach((w, i) => { w.setProperty(hmUI.prop.SRC, `tetrominos/${currentAndNextPieces[1 + i]}.png`) })
+                }
+
                 function lockFallingPiece() {
-                    getFallingPieceCoordinates(fallingPieceState).forEach(([x, y]) => playArea[y + 1][x + 1] = fallingPieceType)
+                    getFallingPieceCoordinates(fallingPieceState).forEach(([x, y]) => playArea[y + 1][x + 1] = currentAndNextPieces[0])
 
                     detectLineClear()
 
                     refreshPlayArea()
 
-                    generateNewPiece()
+                    handleNewPiece()
                 }
+
+                // Controls
 
                 const holdControl = hmUI.createWidget(hmUI.widget.IMG, {
                     x: 0,
