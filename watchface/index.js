@@ -127,7 +127,16 @@ try {
                     playAreaWidgets.push(widgetsRow)
                 }
 
+
+                const fallingPieceWidgets = new Array(4).fill(0).map(() => hmUI.createWidget(hmUI.widget.IMG, {
+                    w: blockSize,
+                    h: blockSize,
+                    show_level: hmUI.show_level.ONLY_NORMAL
+                }))
+
                 generateNewPiece()
+
+                refreshFallingPiece(true)
 
                 function generateEmptyPlayArea() {
                     return new Array(playAreaHeight).fill(0).map((v, y) => new Array(playAreaWidth).fill(0).map((w, x) => (x == 0 || x == playAreaWidth - 1 || y == 0) ? 100 : 0));
@@ -151,7 +160,7 @@ try {
                         generateNewPiece()
                     }
 
-                    refreshPlayArea()
+                    refreshFallingPiece(true)
                 }
 
                 function detectLineClear() {
@@ -175,7 +184,7 @@ try {
                 function moveTo(state) {
                     if (canMoveTo(state)) {
                         fallingPieceState = state
-                        refreshPlayArea()
+                        refreshFallingPiece()
                         return true
                     }
 
@@ -187,21 +196,25 @@ try {
                 }
 
                 function refreshPlayArea() {
-                    // Draw background
                     for (let y = 0; y < visiblePlayAreaHeight; y++) {
                         for (let x = 0; x < visiblePlayAreaWidth; x++) {
                             setDisplayBlock(x, y, playArea[y + 1][x + 1])
                         }
                     }
-
-                    // Draw falling piece
-                    getFallingPieceCoordinates(fallingPieceState).forEach(([x, y]) => {
-                        if (y < visiblePlayAreaHeight) {
-                            setDisplayBlock(x, y, fallingPieceType);
-                        }
-                    })
-
                     holdPiece.setProperty(hmUI.prop.SRC, `tetrominos/${fallingPieceType}.png`)
+                }
+
+                function refreshFallingPiece(updateType = false) {
+                    getFallingPieceCoordinates(fallingPieceState).forEach((coord, i) => {
+                        const updatedParams = {
+                            x: coord[0] * blockSize + (screenWidth - visiblePlayAreaWidthPx) / 2,
+                            y: holdHeight + (visiblePlayAreaHeight - coord[1] - 1) * blockSize,
+                        }
+                        if (updateType) {
+                            updatedParams.src = `blocks/${fallingPieceType}.png`
+                        }
+                        fallingPieceWidgets[i].setProperty(hmUI.prop.MORE, updatedParams)
+                    })
                 }
 
                 function setDisplayBlock(x, y, blockType) {
@@ -217,6 +230,8 @@ try {
                     getFallingPieceCoordinates(fallingPieceState).forEach(([x, y]) => playArea[y + 1][x + 1] = fallingPieceType)
 
                     detectLineClear()
+
+                    refreshPlayArea()
 
                     generateNewPiece()
                 }
@@ -264,7 +279,7 @@ try {
                 })
 
                 holdControl.addEventListener(hmUI.event.CLICK_DOWN, info => {
-                    refreshPlayArea()
+
                 })
 
                 rotateLeftControl.addEventListener(hmUI.event.CLICK_DOWN, info => {
