@@ -176,7 +176,7 @@ try {
                             return newPiece
                         }
                     }
-                    console.error("Could not generate unique new pice")
+                    console.log("Could not generate unique new pice")
                     return newPiece
                 }
 
@@ -243,6 +243,20 @@ try {
                     return false
                 }
 
+                function findHardDropPosition() {
+                    let y = fallingPieceState.y
+                    while (canMoveTo({ ...fallingPieceState, y: y - 1 })) {
+                        y--
+                    }
+
+                    return y
+                }
+
+                function performHardDrop() {
+                    fallingPieceState.y = findHardDropPosition()
+                    lockFallingPiece()
+                }
+
                 function getFallingPieceCoordinates({ x, y, rotation }) {
                     return piecesRotationsCoords[currentAndNextPieces[0] - 1][rotation].map(coord => [coord[0] + x, coord[1] + y])
                 }
@@ -257,7 +271,7 @@ try {
                                 text: match[2]
                             }
                             const widget = playAreaWidgets[y][x]
-                            widget.setProperty(hmUI.prop.MORE, params)
+                            // widget.setProperty(hmUI.prop.MORE, params)
                             widget.setProperty(hmUI.prop.X, params.x)
                             widget.setProperty(hmUI.prop.TEXT, params.text)
                         }
@@ -363,13 +377,26 @@ try {
                     })
                 })
 
+                let hardDropButtonHoldTimer
                 hardDropControl.addEventListener(hmUI.event.CLICK_DOWN, info => {
-                    moveTo({
-                        ...fallingPieceState, y: fallingPieceState.y - 1
+                    hardDropButtonHoldTimer = timer.createTimer(500, null, option => {
+                        hardDropButtonHoldTimer = undefined
+                        // Hard drop
+                        performHardDrop()
                     })
                 })
 
-                timer.createTimer(0, 1000, option => {
+                hardDropControl.addEventListener(hmUI.event.CLICK_UP, info => {
+                    if (hardDropButtonHoldTimer != undefined) {
+                        timer.stopTimer(hardDropButtonHoldTimer)
+                        // Soft drop
+                        moveTo({
+                            ...fallingPieceState, y: fallingPieceState.y - 1
+                        })
+                    }
+                })
+
+                timer.createTimer(1000, 1000, option => {
                     if (!moveTo({
                         ...fallingPieceState, y: fallingPieceState.y - 1
                     })) {
