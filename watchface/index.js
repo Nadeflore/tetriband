@@ -93,16 +93,15 @@ try {
 
                 const currentAndNextPieces = new Array(4).fill(0)
 
-                let fallingPieceState = {
-                    x: 3,
-                    y: 17,
-                    rotation: 0
-                }
+                let fallingPieceState
 
-                let playArea = generateEmptyPlayArea()
+                let playArea
 
+                let holdPiece
 
-                // Widgeets
+                let holdUsed
+
+                // Widgets
 
                 // background
                 hmUI.createWidget(hmUI.widget.IMG, {
@@ -113,7 +112,7 @@ try {
                 })
 
                 // hold piece
-                const holdPiece = hmUI.createWidget(hmUI.widget.IMG, {
+                const holdPieceWidget = hmUI.createWidget(hmUI.widget.IMG, {
                     x: 35,
                     y: 25,
                     show_level: hmUI.show_level.ONLY_NORMAL
@@ -152,9 +151,7 @@ try {
 
 
                 // Init game state
-                setUpCurrentAndNextPieces()
-
-                refreshFallingPiece(true)
+                resetGame()
 
 
                 // Functions definition
@@ -185,34 +182,52 @@ try {
                     refreshNextPieces()
                 }
 
-                function handleNewPiece() {
-                    // try to generate new random piece that is not same of the last 4
-                    const newPiece = generateNewRandomPiece()
+                function resetGame() {
+                    fallingPieceState = {
+                        x: 3,
+                        y: 17,
+                        rotation: 0
+                    }
+                    // Reset play area
+                    playArea = generateEmptyPlayArea()
+                    holdPiece = null
+                    holdUsed = false
+                    setUpCurrentAndNextPieces()
+                    refreshPlayArea()
+                    refreshFallingPiece(true)
+                }
 
-                    // Shift to next piece
-                    currentAndNextPieces.shift()
+                function handleNewPiece(holdPiece = null) {
+                    if (holdPiece) {
+                        currentAndNextPieces[0] = holdPiece
+                    } else {
+                        holdUsed = false
 
-                    // Add newly generated at the end
-                    currentAndNextPieces.push(newPiece)
+                        // try to generate new random piece that is not same of the last 4
+                        const newPiece = generateNewRandomPiece()
+
+                        // Shift to next piece
+                        currentAndNextPieces.shift()
+
+                        // Add newly generated at the end
+                        currentAndNextPieces.push(newPiece)
+
+                        refreshNextPieces()
+                    }
 
                     // Reset falling piece position
                     fallingPieceState = {
                         x: 3,
                         y: 17,
                         rotation: 0
-                    };
+                    }
 
                     // Check game over
                     if (!canMoveTo(fallingPieceState)) {
-                        // Reset play area
-                        playArea = generateEmptyPlayArea()
-                        refreshPlayArea()
-                        setUpCurrentAndNextPieces()
+                        resetGame()
+                    } else {
+                        refreshFallingPiece(true)
                     }
-
-                    // Refresh display
-                    refreshNextPieces()
-                    refreshFallingPiece(true)
                 }
 
                 function detectLineClear() {
@@ -295,6 +310,15 @@ try {
                     nextPieceWidgets.forEach((w, i) => { w.setProperty(hmUI.prop.SRC, `tetrominos/${currentAndNextPieces[1 + i]}.png`) })
                 }
 
+                function refreshHoldPiece() {
+                    if (holdPiece) {
+                        holdPieceWidget.setProperty(hmUI.prop.VISIBILE, true)
+                        holdPieceWidget.setProperty(hmUI.prop.SRC, `tetrominos/${holdPiece}.png`)
+                    } else {
+                        holdPieceWidget.setProperty(hmUI.prop.VISIBILE, false)
+                    }
+                }
+
                 function lockFallingPiece() {
                     getFallingPieceCoordinates(fallingPieceState).forEach(([x, y]) => playArea[y + 1][x + 1] = currentAndNextPieces[0])
 
@@ -350,7 +374,13 @@ try {
                 })
 
                 holdControl.addEventListener(hmUI.event.CLICK_DOWN, info => {
-
+                    if (!holdUsed) {
+                        holdUsed = true
+                        const poppedPiece = holdPiece
+                        holdPiece = currentAndNextPieces[0]
+                        refreshHoldPiece()
+                        handleNewPiece(poppedPiece)
+                    }
                 })
 
                 rotateLeftControl.addEventListener(hmUI.event.CLICK_DOWN, info => {
