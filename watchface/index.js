@@ -89,17 +89,21 @@ try {
                     ]
                 ]
 
+                const scorePerLineClear = [0, 40, 100, 300, 1200]
+
                 // State of the game
 
                 const currentAndNextPieces = new Array(4).fill(0)
-
                 let fallingPieceState
-
                 let playArea
-
                 let holdPiece
-
                 let holdUsed
+                let level
+                let lines
+                let score
+
+                // Timers
+                let gravityTimer
 
                 // Widgets
 
@@ -122,6 +126,7 @@ try {
                 const playAreaFontArray = [0, 1, 2, 3, 4, 5, 6, 7, 0, 0].map(t => `blocks/${t}.png`)
                 for (let y = 0; y < visiblePlayAreaHeight; y++) {
                     const widgetsRow = []
+                    // Use 2 TEXT_IMG widgets, because each is 7 char max
                     for (let x = 0; x < 2; x++) {
                         widgetsRow.push(
                             hmUI.createWidget(hmUI.widget.TEXT_IMG, {
@@ -149,6 +154,45 @@ try {
                     show_level: hmUI.show_level.ONLY_NORMAL
                 }))
 
+                const levelWidget = hmUI.createWidget(hmUI.widget.TEXT, {
+                    x: 93,
+                    y: 13,
+                    w: 20,
+                    h: 12,
+                    color: 0xffffff,
+                    text_size: 11,
+                    align_h: hmUI.align.LEFT,
+                    align_v: hmUI.align.BOTTOM,
+                    text_style: hmUI.text_style.NONE,
+                    text: '18'
+                })
+
+                const linesCountWidget = hmUI.createWidget(hmUI.widget.TEXT, {
+                    x: 93,
+                    y: 31,
+                    w: 39,
+                    h: 12,
+                    color: 0xffffff,
+                    text_size: 11,
+                    align_h: hmUI.align.LEFT,
+                    align_v: hmUI.align.BOTTOM,
+                    text_style: hmUI.text_style.NONE,
+                    text: '1546'
+                })
+
+                const scoretWidget = hmUI.createWidget(hmUI.widget.TEXT, {
+                    x: 93,
+                    y: 49,
+                    w: 45,
+                    h: 12,
+                    color: 0xffffff,
+                    text_size: 11,
+                    align_h: hmUI.align.LEFT,
+                    align_v: hmUI.align.BOTTOM,
+                    text_style: hmUI.text_style.NONE,
+                    text: '1546'
+                })
+
 
                 // Init game state
                 resetGame()
@@ -173,7 +217,6 @@ try {
                             return newPiece
                         }
                     }
-                    console.log("Could not generate unique new pice")
                     return newPiece
                 }
 
@@ -183,18 +226,19 @@ try {
                 }
 
                 function resetGame() {
-                    fallingPieceState = {
-                        x: 3,
-                        y: 17,
-                        rotation: 0
-                    }
                     // Reset play area
                     playArea = generateEmptyPlayArea()
+                    refreshPlayArea()
                     holdPiece = null
                     holdUsed = false
+                    level = 0
+                    lines = 0
+                    score = 0
+                    refreshCounters()
                     setUpCurrentAndNextPieces()
-                    refreshPlayArea()
+                    handleNewPiece()
                     refreshFallingPiece(true)
+
                 }
 
                 function handleNewPiece(holdPiece = null) {
@@ -225,9 +269,23 @@ try {
                     // Check game over
                     if (!canMoveTo(fallingPieceState)) {
                         resetGame()
-                    } else {
-                        refreshFallingPiece(true)
+                        return
                     }
+
+                    refreshFallingPiece(true)
+
+                    // Reset timer
+                    if (gravityTimer) {
+                        timer.stopTimer(gravityTimer)
+                    }
+                    const gravityDelay = 1000 / 60 * Math.max(60 - level * 4, 4)
+                    gravityTimer = timer.createTimer(gravityDelay, gravityDelay, option => {
+                        if (!moveTo({
+                            ...fallingPieceState, y: fallingPieceState.y - 1
+                        })) {
+                            lockFallingPiece()
+                        }
+                    })
                 }
 
                 function detectLineClear() {
@@ -241,6 +299,13 @@ try {
                             playArea[y] = row
                             y++
                         }
+                    }
+
+                    if (clearCount != 0) {
+                        score += scorePerLineClear[clearCount] * (level + 1)
+                        lines += clearCount
+                        level = Math.floor(lines / 5)
+                        refreshCounters()
                     }
                 }
 
@@ -272,9 +337,21 @@ try {
                     lockFallingPiece()
                 }
 
+                function lockFallingPiece() {
+                    getFallingPieceCoordinates(fallingPieceState).forEach(([x, y]) => playArea[y + 1][x + 1] = currentAndNextPieces[0])
+
+                    detectLineClear()
+
+                    refreshPlayArea()
+
+                    handleNewPiece()
+                }
+
                 function getFallingPieceCoordinates({ x, y, rotation }) {
                     return piecesRotationsCoords[currentAndNextPieces[0] - 1][rotation].map(coord => [coord[0] + x, coord[1] + y])
                 }
+
+                // Widgets refresh methods
 
                 function refreshPlayArea() {
                     for (let y = 0; y < visiblePlayAreaHeight; y++) {
@@ -319,14 +396,10 @@ try {
                     }
                 }
 
-                function lockFallingPiece() {
-                    getFallingPieceCoordinates(fallingPieceState).forEach(([x, y]) => playArea[y + 1][x + 1] = currentAndNextPieces[0])
-
-                    detectLineClear()
-
-                    refreshPlayArea()
-
-                    handleNewPiece()
+                function refreshCounters() {
+                    levelWidget.setProperty(hmUI.prop.TEXT, String(level))
+                    linesCountWidget.setProperty(hmUI.prop.TEXT, String(lines))
+                    scoretWidget.setProperty(hmUI.prop.TEXT, String(score))
                 }
 
                 // Controls
@@ -423,14 +496,6 @@ try {
                         moveTo({
                             ...fallingPieceState, y: fallingPieceState.y - 1
                         })
-                    }
-                })
-
-                timer.createTimer(1000, 1000, option => {
-                    if (!moveTo({
-                        ...fallingPieceState, y: fallingPieceState.y - 1
-                    })) {
-                        lockFallingPiece()
                     }
                 })
             },
