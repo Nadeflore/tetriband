@@ -180,7 +180,7 @@ try {
                     text: '1546'
                 })
 
-                const scoretWidget = hmUI.createWidget(hmUI.widget.TEXT, {
+                const scoreWidget = hmUI.createWidget(hmUI.widget.TEXT, {
                     x: 93,
                     y: 49,
                     w: 45,
@@ -274,11 +274,15 @@ try {
 
                     refreshFallingPiece(true)
 
+                    setGravity(Math.max(60 - level * 4, 1));
+                }
+
+                function setGravity(framePerRow) {
                     // Reset timer
                     if (gravityTimer) {
                         timer.stopTimer(gravityTimer)
                     }
-                    const gravityDelay = 1000 / 60 * Math.max(60 - level * 4, 4)
+                    const gravityDelay = 1000 / 60 * framePerRow;
                     gravityTimer = timer.createTimer(gravityDelay, gravityDelay, option => {
                         if (!moveTo({
                             ...fallingPieceState, y: fallingPieceState.y - 1
@@ -333,6 +337,7 @@ try {
                 }
 
                 function performHardDrop() {
+                    //setGravity(1)
                     fallingPieceState.y = findHardDropPosition()
                     lockFallingPiece()
                 }
@@ -363,9 +368,15 @@ try {
                                 text: match[2]
                             }
                             const widget = playAreaWidgets[y][x]
-                            // widget.setProperty(hmUI.prop.MORE, params)
-                            widget.setProperty(hmUI.prop.X, params.x)
-                            widget.setProperty(hmUI.prop.TEXT, params.text)
+
+                            if (params.text) {
+                                // widget.setProperty(hmUI.prop.MORE, params)
+                                widget.setProperty(hmUI.prop.X, params.x)
+                                widget.setProperty(hmUI.prop.TEXT, params.text)
+                                widget.setProperty(hmUI.prop.VISIBLE, true)
+                            } else {
+                                widget.setProperty(hmUI.prop.VISIBLE, false)
+                            }
                         }
                     }
                 }
@@ -399,7 +410,7 @@ try {
                 function refreshCounters() {
                     levelWidget.setProperty(hmUI.prop.TEXT, String(level))
                     linesCountWidget.setProperty(hmUI.prop.TEXT, String(lines))
-                    scoretWidget.setProperty(hmUI.prop.TEXT, String(score))
+                    scoreWidget.setProperty(hmUI.prop.TEXT, String(score))
                 }
 
                 // Controls
@@ -503,6 +514,37 @@ try {
             onInit() {
                 console.log("index page.js on init invoke");
                 this.init_view();
+
+                const time = hmSensor.createSensor(hmSensor.id.TIME)
+
+                const fpsWidget = hmUI.createWidget(hmUI.widget.TEXT, {
+                    x: 10,
+                    y: 70,
+                    w: 140,
+                    h: 20,
+                    color: 0xffffff,
+                    text_size: 15,
+                    align_h: hmUI.align.LEFT,
+                    align_v: hmUI.align.BOTTOM,
+                    text_style: hmUI.text_style.NONE
+                })
+
+                let previousTime = time.utc
+                let fps = 0
+                let counter = 0
+
+                timer.createTimer(1, 1, option => {
+                    fps++
+                    const currentTime = time.utc
+                    if (currentTime - previousTime > 1000) {
+                        fpsWidget.setProperty(hmUI.prop.TEXT, String(fps))
+                        fps = 0
+                        previousTime = currentTime
+                    } else {
+                        // Forcce screen update
+                        fpsWidget.setProperty(hmUI.prop.X, 10 + (counter++) % 4)
+                    }
+                })
             },
 
             onReady() {
