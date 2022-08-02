@@ -119,6 +119,7 @@ try {
                 const holdPieceWidget = hmUI.createWidget(hmUI.widget.IMG, {
                     x: 35,
                     y: 25,
+                    visible: false,
                     show_level: hmUI.show_level.ONLY_NORMAL
                 })
 
@@ -134,6 +135,7 @@ try {
                                 y: holdHeight + (visiblePlayAreaHeight - y - 1) * blockSize,
                                 w: visiblePlayAreaWidthPx / 2,
                                 h: blockSize,
+                                visible: false,
                                 font_array: playAreaFontArray,
                                 show_level: hmUI.show_level.ONLY_NORMAL
                             })
@@ -234,6 +236,7 @@ try {
                     level = 0
                     lines = 0
                     score = 0
+                    refreshHoldPiece()
                     refreshCounters()
                     setUpCurrentAndNextPieces()
                     handleNewPiece()
@@ -400,10 +403,10 @@ try {
 
                 function refreshHoldPiece() {
                     if (holdPiece) {
-                        holdPieceWidget.setProperty(hmUI.prop.VISIBILE, true)
                         holdPieceWidget.setProperty(hmUI.prop.SRC, `tetrominos/${holdPiece}.png`)
+                        holdPieceWidget.setProperty(hmUI.prop.VISIBLE, true)
                     } else {
-                        holdPieceWidget.setProperty(hmUI.prop.VISIBILE, false)
+                        holdPieceWidget.setProperty(hmUI.prop.VISIBLE, false)
                     }
                 }
 
@@ -493,7 +496,7 @@ try {
 
                 let hardDropButtonHoldTimer
                 hardDropControl.addEventListener(hmUI.event.CLICK_DOWN, info => {
-                    hardDropButtonHoldTimer = timer.createTimer(500, null, option => {
+                    hardDropButtonHoldTimer = timer.createTimer(200, null, option => {
                         hardDropButtonHoldTimer = undefined
                         // Hard drop
                         performHardDrop()
