@@ -150,6 +150,12 @@ try {
                     show_level: hmUI.show_level.ONLY_NORMAL
                 }))
 
+                const hardDropPreviewWidgets = new Array(4).fill(0).map(() => hmUI.createWidget(hmUI.widget.IMG, {
+                    w: blockSize,
+                    h: blockSize,
+                    show_level: hmUI.show_level.ONLY_NORMAL
+                }))
+
                 const nextPieceWidgets = new Array(3).fill(0).map((_, i) => hmUI.createWidget(hmUI.widget.IMG, {
                     x: 32 + 45 * i,
                     y: 437,
@@ -394,6 +400,18 @@ try {
                             updatedParams.src = `blocks/${currentAndNextPieces[0]}.png`
                         }
                         fallingPieceWidgets[i].setProperty(hmUI.prop.MORE, updatedParams)
+                    })
+
+                    // hard drop preview
+                    getFallingPieceCoordinates({ ...fallingPieceState, y: findHardDropPosition() }).forEach((coord, i) => {
+                        const updatedParams = {
+                            x: coord[0] * blockSize + playAreaPadding,
+                            y: holdHeight + (visiblePlayAreaHeight - coord[1] - 1) * blockSize,
+                        }
+                        if (updateType) {
+                            updatedParams.src = `blocks/preview_${currentAndNextPieces[0]}.png`
+                        }
+                        hardDropPreviewWidgets[i].setProperty(hmUI.prop.MORE, updatedParams)
                     })
                 }
 
