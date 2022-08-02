@@ -94,6 +94,7 @@ try {
                 // State of the game
 
                 const currentAndNextPieces = new Array(4).fill(0)
+                let highestPerColumn = new Array(visiblePlayAreaWidth).fill(0)
                 let fallingPieceState
                 let playArea
                 let holdPiece
@@ -337,12 +338,27 @@ try {
                 }
 
                 function findHardDropPosition() {
+                    const position = findHardDropPositionFast()
+                    return position <= fallingPieceState.y ? position : findHardDropPositionSlow()
+                }
+
+                function findHardDropPositionSlow() {
+                    console.log("Using slow hard drop")
                     let y = fallingPieceState.y
                     while (canMoveTo({ ...fallingPieceState, y: y - 1 })) {
                         y--
                     }
 
                     return y
+                }
+
+                function findHardDropPositionFast() {
+                    const columns = new Array(4).fill(-1)
+                    piecesRotationsCoords[currentAndNextPieces[0] - 1][fallingPieceState.rotation].forEach(([x, y]) => {
+                        columns[x] = Math.max(columns[x], highestPerColumn[x + fallingPieceState.x] - y)
+                    })
+
+                    return Math.max(...columns)
                 }
 
                 function performHardDrop() {
@@ -381,12 +397,24 @@ try {
                             if (params.text) {
                                 // widget.setProperty(hmUI.prop.MORE, params)
                                 widget.setProperty(hmUI.prop.X, params.x)
+                                widget.setProperty(hmUI.prop.W, params.text.length * blockSize)
                                 widget.setProperty(hmUI.prop.TEXT, params.text)
                                 widget.setProperty(hmUI.prop.VISIBLE, true)
                             } else {
                                 widget.setProperty(hmUI.prop.VISIBLE, false)
                             }
                         }
+                    }
+
+                    // Refresh highest per column
+                    for (let x = 0; x < visiblePlayAreaWidth; x++) {
+                        let y
+                        for (y = visiblePlayAreaHeight; y >= 0; y--) {
+                            if (playArea[y + 1][x + 1]) {
+                                break
+                            }
+                        }
+                        highestPerColumn[x] = y + 1
                     }
                 }
 
