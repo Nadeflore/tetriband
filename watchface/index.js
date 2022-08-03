@@ -103,6 +103,9 @@ try {
                 let lines
                 let score
 
+                // time, game, pause, help, about
+                let state = "game"
+
                 // Timers
                 let gravityTimer
 
@@ -115,7 +118,6 @@ try {
                     src: 'background.png',
                     show_level: hmUI.show_level.ONLY_NORMAL
                 })
-
 
                 // hold piece
                 const holdPieceWidget = hmUI.createWidget(hmUI.widget.IMG, {
@@ -209,12 +211,60 @@ try {
                     text: '1546'
                 })
 
-
-                // Init game state
-                resetGame()
-
-
                 // Functions definition
+                function handlePauseMenuClick(info) {
+                    if (state == "pause") {
+                        if (info.y < 156) {
+                            resumeGame()
+                        } else if (info.y < 219) {
+                            state = "help"
+                            menuWidget.setProperty(hmUI.prop.SRC, `help.png`)
+                        } else if (info.y < 279) {
+                            state = "about"
+                            menuWidget.setProperty(hmUI.prop.SRC, `about.png`)
+                        } else if (info.y < 338) {
+                            displayTime()
+                        } else {
+                            toogleVibrations()
+                        }
+                    } else if (state == "help" || state == "about") {
+                        state = "pause"
+                        menuWidget.setProperty(hmUI.prop.SRC, `menu.png`)
+                    }
+                }
+
+                function toogleVibrations() {
+                    // TODO
+                }
+
+                function displayTime() {
+                    // TODO
+                }
+
+                function pauseGame() {
+                    if (state == "game") {
+                        removeControlsEventListeners()
+                        console.log("pause game")
+                        if (gravityTimer) {
+                            timer.stopTimer(gravityTimer)
+                            gravityTimer = null
+                        }
+
+                        menuWidget.setProperty(hmUI.prop.VISIBLE, true)
+                        menuWidget.addEventListener(hmUI.event.CLICK_UP, handlePauseMenuClick)
+                        state = "pause"
+                    }
+                }
+
+                function resumeGame() {
+                    console.log("resume game")
+                    menuWidget.setProperty(hmUI.prop.VISIBLE, false)
+                    menuWidget.removeEventListener(hmUI.event.CLICK_UP, handlePauseMenuClick)
+
+                    addControlsEventListeners()
+                    setGravityTimer()
+                    state = "game"
+                }
 
                 function generateEmptyPlayArea() {
                     return new Array(playAreaHeight).fill(0).map((v, y) => new Array(playAreaWidth).fill(0).map((w, x) => (x == 0 || x == playAreaWidth - 1 || y == 0) ? 100 : 0));
@@ -255,7 +305,7 @@ try {
                     setUpCurrentAndNextPieces()
                     handleNewPiece()
                     refreshFallingPiece(true)
-
+                    resumeGame()
                 }
 
                 function handleNewPiece(holdPiece = null) {
@@ -294,15 +344,16 @@ try {
 
                     refreshFallingPiece(true)
 
-                    setGravity(Math.max(60 - level * 4, 1));
+                    setGravityTimer();
                 }
 
-                function setGravity(framePerRow) {
+                function setGravityTimer() {
                     // Reset timer
                     if (gravityTimer) {
                         timer.stopTimer(gravityTimer)
+                        gravityTimer = null
                     }
-                    const gravityDelay = 1000 / 60 * framePerRow;
+                    const gravityDelay = 1000 / 60 * Math.max(60 - level * 4, 1);
                     gravityTimer = timer.createTimer(gravityDelay, gravityDelay, option => {
                         if (!moveTo({
                             ...fallingPieceState, y: fallingPieceState.y - 1
@@ -516,50 +567,44 @@ try {
                     h: screenHeight - holdHeight - rotateHeight - moveHeight
                 })
 
-                holdControl.addEventListener(hmUI.event.CLICK_DOWN, info => {
-                    if (!holdUsed) {
-                        holdUsed = true
-                        const poppedPiece = holdPiece
-                        holdPiece = currentAndNextPieces[0]
-                        refreshHoldPiece()
-                        handleNewPiece(poppedPiece)
-                    }
+                // Menu
+                const menuWidget = hmUI.createWidget(hmUI.widget.IMG, {
+                    x: 0,
+                    y: 0,
+                    src: 'menu.png',
+                    show_level: hmUI.show_level.ONLY_NORMAL
                 })
 
-                rotateLeftControl.addEventListener(hmUI.event.CLICK_DOWN, info => {
+                // Move methods
+                const rotateLeft = () => {
                     moveTo({
                         ...fallingPieceState, rotation: (fallingPieceState.rotation - 1) & 3
                     })
-                })
-
-                rotateRightControl.addEventListener(hmUI.event.CLICK_DOWN, info => {
+                }
+                const rotateRight = () => {
                     moveTo({
                         ...fallingPieceState, rotation: (fallingPieceState.rotation + 1) & 3
                     })
-                })
-
-                moveLeftControl.addEventListener(hmUI.event.CLICK_DOWN, info => {
+                }
+                const moveLeft = () => {
                     moveTo({
                         ...fallingPieceState, x: fallingPieceState.x - 1
                     })
-                })
-
-                moveRightControl.addEventListener(hmUI.event.CLICK_DOWN, info => {
+                }
+                const moveRight = () => {
                     moveTo({
                         ...fallingPieceState, x: fallingPieceState.x + 1
                     })
-                })
-
+                }
                 let hardDropButtonHoldTimer
-                hardDropControl.addEventListener(hmUI.event.CLICK_DOWN, info => {
+                const dropDown = () => {
                     hardDropButtonHoldTimer = timer.createTimer(200, null, option => {
                         hardDropButtonHoldTimer = undefined
                         // Hard drop
                         performHardDrop()
                     })
-                })
-
-                hardDropControl.addEventListener(hmUI.event.CLICK_UP, info => {
+                }
+                const dropUp = () => {
                     if (hardDropButtonHoldTimer != undefined) {
                         timer.stopTimer(hardDropButtonHoldTimer)
                         // Soft drop
@@ -567,7 +612,56 @@ try {
                             ...fallingPieceState, y: fallingPieceState.y - 1
                         })
                     }
+                }
+
+                const hold = () => {
+                    if (!holdUsed) {
+                        holdUsed = true
+                        const poppedPiece = holdPiece
+                        holdPiece = currentAndNextPieces[0]
+                        refreshHoldPiece()
+                        handleNewPiece(poppedPiece)
+                    }
+                }
+
+                function addControlsEventListeners() {
+                    rotateLeftControl.addEventListener(hmUI.event.CLICK_DOWN, rotateLeft)
+
+                    rotateRightControl.addEventListener(hmUI.event.CLICK_DOWN, rotateRight)
+
+                    moveLeftControl.addEventListener(hmUI.event.CLICK_DOWN, moveLeft)
+
+                    moveRightControl.addEventListener(hmUI.event.CLICK_DOWN, moveRight)
+
+                    hardDropControl.addEventListener(hmUI.event.CLICK_DOWN, dropDown)
+
+                    hardDropControl.addEventListener(hmUI.event.CLICK_UP, dropUp)
+
+                    holdControl.addEventListener(hmUI.event.CLICK_DOWN, hold)
+                }
+
+                function removeControlsEventListeners() {
+                    rotateLeftControl.removeEventListener(hmUI.event.CLICK_DOWN, rotateLeft)
+
+                    rotateRightControl.removeEventListener(hmUI.event.CLICK_DOWN, rotateRight)
+
+                    moveLeftControl.removeEventListener(hmUI.event.CLICK_DOWN, moveLeft)
+
+                    moveRightControl.removeEventListener(hmUI.event.CLICK_DOWN, moveRight)
+
+                    hardDropControl.removeEventListener(hmUI.event.CLICK_DOWN, dropDown)
+
+                    hardDropControl.removeEventListener(hmUI.event.CLICK_UP, dropUp)
+
+                    holdControl.removeEventListener(hmUI.event.CLICK_DOWN, hold)
+                }
+
+                hmUI.createWidget(hmUI.widget.WIDGET_DELEGATE, {
+                    pause_call: (function () {/*if (state == "game")*/ pauseGame() })
                 })
+
+                // Init game state
+                resetGame()
             },
 
             onInit() {
