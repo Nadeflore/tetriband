@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   width="24"
+   height="25.242033"
+   viewBox="0 0 24 25.242033"
+   version="1.1"
+   id="svg22"
+   sodipodi:docname="band vibration.svg"
+   inkscape:version="1.2.1 (ef4d3fba62, 2022-07-19, custom)"
+   inkscape:export-filename="../5f9f312e/vibration_true.png"
+   inkscape:export-xdpi="209.17491"
+   inkscape:export-ydpi="209.17491"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs26" />
+  <sodipodi:namedview
+     id="namedview24"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     showgrid="false"
+     inkscape:zoom="8.8541667"
+     inkscape:cx="-29.251765"
+     inkscape:cy="10.785882"
+     inkscape:window-width="1920"
+     inkscape:window-height="1016"
+     inkscape:window-x="0"
+     inkscape:window-y="27"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg22" />
+  <path
+     fill="none"
+     d="M 0,0.0910584 H 24 V 24.091058 H 0 Z"
+     id="path18"
+     style="display:inline" />
+  <path
+     d="m 1.3728079,15.034964 c 0.55,0 1,-0.45 1,-1 v -4 c 0,-0.5499996 -0.45,-0.9999996 -1,-0.9999996 -0.54999996,0 -0.99999996,0.45 -0.99999996,0.9999996 v 4 c 0,0.55 0.45,1 0.99999996,1 z m 3,2 c 0.55,0 1,-0.45 1,-1 V 8.0349644 c 0,-0.55 -0.45,-1 -1,-1 -0.55,0 -1,0.45 -1,1 v 7.9999996 c 0,0.55 0.45,1 1,1 z M 21.171476,10.144798 v 4 c 0,0.55 0.45,1 1,1 0.55,0 1,-0.45 1,-1 v -4 c 0,-0.5499997 -0.45,-0.9999997 -1,-0.9999997 -0.55,0 -1,0.45 -1,0.9999997 z m -2,7 c 0.55,0 1,-0.45 1,-1 V 8.1447983 c 0,-0.55 -0.45,-1 -1,-1 -0.55,0 -1,0.45 -1,1 v 7.9999997 c 0,0.55 0.45,1 1,1 z"
+     id="path20"
+     sodipodi:nodetypes="ssssssssssssssssssssssssssss"
+     style="display:inline" />
+  <rect
+     style="display:inline;opacity:1;fill:none;fill-opacity:1;stroke:#000000;stroke-width:2;stroke-dasharray:none;stroke-opacity:1"
+     id="rect397"
+     width="8.4318562"
+     height="17.821821"
+     x="7.4541717"
+     y="3.3047101"
+     ry="4.2159281" />
+  <path
+     style="display:inline;fill:#ff0000;stroke:#f72424;stroke-width:3.1;stroke-linecap:round;stroke-linejoin:miter;stroke-dasharray:none;stroke-opacity:1"
+     d="M 4.6302155,23.692033 18.708749,1.55"
+     id="path1499"
+     sodipodi:nodetypes="cc"
+     inkscape:export-filename="../ca1d21dd/vibration_disabled.png"
+     inkscape:export-xdpi="209.17491"
+     inkscape:export-ydpi="209.17491" />
+</svg>
