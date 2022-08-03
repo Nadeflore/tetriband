@@ -145,17 +145,14 @@ try {
                     playAreaWidgets.push(widgetsRow)
                 }
 
-                const fallingPieceWidgets = new Array(4).fill(0).map(() => hmUI.createWidget(hmUI.widget.IMG, {
-                    w: blockSize,
-                    h: blockSize,
+                const fallingPieceWidget = hmUI.createWidget(hmUI.widget.IMG, {
                     show_level: hmUI.show_level.ONLY_NORMAL
-                }))
+                })
 
-                const hardDropPreviewWidgets = new Array(4).fill(0).map(() => hmUI.createWidget(hmUI.widget.IMG, {
-                    w: blockSize,
-                    h: blockSize,
+                const hardDropPreviewWidget = hmUI.createWidget(hmUI.widget.IMG, {
+
                     show_level: hmUI.show_level.ONLY_NORMAL
-                }))
+                })
 
                 const nextPieceWidgets = new Array(3).fill(0).map((_, i) => hmUI.createWidget(hmUI.widget.IMG, {
                     x: 32 + 45 * i,
@@ -418,38 +415,32 @@ try {
                     }
                 }
 
-                function refreshFallingPiece(updateType = false) {
-                    getFallingPieceCoordinates(fallingPieceState).forEach((coord, i) => {
-                        const updatedParams = {
-                            x: coord[0] * blockSize + playAreaPadding,
-                            y: holdHeight + (visiblePlayAreaHeight - coord[1] - 1) * blockSize,
-                        }
-                        if (updateType) {
-                            updatedParams.src = `blocks/${currentAndNextPieces[0]}.png`
-                        }
-                        fallingPieceWidgets[i].setProperty(hmUI.prop.MORE, updatedParams)
-                    })
+                function refreshFallingPiece() {
+                    const type = currentAndNextPieces[0]
+                    const yOffset = type == 1 ? 1 : 0
+                    const updatedParams = {
+                        x: fallingPieceState.x * blockSize + playAreaPadding,
+                        y: holdHeight + (visiblePlayAreaHeight - fallingPieceState.y - 3 - yOffset) * blockSize,
+                        src: `tetrominos/${type}_${fallingPieceState.rotation + 1}.png`
+                    }
+                    fallingPieceWidget.setProperty(hmUI.prop.MORE, updatedParams)
 
                     // hard drop preview
-                    getFallingPieceCoordinates({ ...fallingPieceState, y: findHardDropPosition() }).forEach((coord, i) => {
-                        const updatedParams = {
-                            x: coord[0] * blockSize + playAreaPadding,
-                            y: holdHeight + (visiblePlayAreaHeight - coord[1] - 1) * blockSize,
-                        }
-                        if (updateType) {
-                            updatedParams.src = `blocks/preview_${currentAndNextPieces[0]}.png`
-                        }
-                        hardDropPreviewWidgets[i].setProperty(hmUI.prop.MORE, updatedParams)
-                    })
+                    const updatedParams2 = {
+                        x: fallingPieceState.x * blockSize + playAreaPadding,
+                        y: holdHeight + (visiblePlayAreaHeight - findHardDropPosition() - 3 - yOffset) * blockSize,
+                        src: `tetrominos/preview_${type}_${fallingPieceState.rotation + 1}.png`
+                    }
+                    hardDropPreviewWidget.setProperty(hmUI.prop.MORE, updatedParams2)
                 }
 
                 function refreshNextPieces() {
-                    nextPieceWidgets.forEach((w, i) => { w.setProperty(hmUI.prop.SRC, `tetrominos/${currentAndNextPieces[1 + i]}.png`) })
+                    nextPieceWidgets.forEach((w, i) => { w.setProperty(hmUI.prop.SRC, `tetrominos/mini_${currentAndNextPieces[1 + i]}.png`) })
                 }
 
                 function refreshHoldPiece() {
                     if (holdPiece) {
-                        holdPieceWidget.setProperty(hmUI.prop.SRC, `tetrominos/${holdPiece}.png`)
+                        holdPieceWidget.setProperty(hmUI.prop.SRC, `tetrominos/mini_${holdPiece}.png`)
                         holdPieceWidget.setProperty(hmUI.prop.VISIBLE, true)
                     } else {
                         holdPieceWidget.setProperty(hmUI.prop.VISIBLE, false)
