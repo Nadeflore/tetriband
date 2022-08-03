@@ -116,11 +116,21 @@ try {
                     show_level: hmUI.show_level.ONLY_NORMAL
                 })
 
+
                 // hold piece
                 const holdPieceWidget = hmUI.createWidget(hmUI.widget.IMG, {
                     x: 35,
                     y: 25,
                     visible: false,
+                    show_level: hmUI.show_level.ONLY_NORMAL
+                })
+
+                // Hold disabled
+                const holdDisabled = hmUI.createWidget(hmUI.widget.IMG, {
+                    x: 33,
+                    y: 51,
+                    src: 'hold_disabled.png',
+                    visibility: false,
                     show_level: hmUI.show_level.ONLY_NORMAL
                 })
 
@@ -161,7 +171,7 @@ try {
                 }))
 
                 const levelWidget = hmUI.createWidget(hmUI.widget.TEXT, {
-                    x: 93,
+                    x: 86,
                     y: 13,
                     w: 20,
                     h: 12,
@@ -174,7 +184,7 @@ try {
                 })
 
                 const linesCountWidget = hmUI.createWidget(hmUI.widget.TEXT, {
-                    x: 93,
+                    x: 86,
                     y: 31,
                     w: 39,
                     h: 12,
@@ -187,7 +197,7 @@ try {
                 })
 
                 const scoreWidget = hmUI.createWidget(hmUI.widget.TEXT, {
-                    x: 93,
+                    x: 86,
                     y: 49,
                     w: 45,
                     h: 12,
@@ -252,7 +262,10 @@ try {
                     if (holdPiece) {
                         currentAndNextPieces[0] = holdPiece
                     } else {
-                        holdUsed = false
+                        if (holdUsed) {
+                            holdUsed = false
+                            refreshHoldPiece()
+                        }
 
                         // try to generate new random piece that is not same of the last 4
                         const newPiece = generateNewRandomPiece()
@@ -444,6 +457,12 @@ try {
                         holdPieceWidget.setProperty(hmUI.prop.VISIBLE, true)
                     } else {
                         holdPieceWidget.setProperty(hmUI.prop.VISIBLE, false)
+                    }
+
+                    if (holdUsed) {
+                        holdDisabled.setProperty(hmUI.prop.VISIBLE, true)
+                    } else {
+                        holdDisabled.setProperty(hmUI.prop.VISIBLE, false)
                     }
                 }
 
