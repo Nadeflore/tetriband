@@ -350,7 +350,7 @@ try {
                 }
 
                 function findHardDropPositionFast() {
-                    const columns = new Array(4).fill(-1)
+                    const columns = new Array(4).fill(-2)
                     piecesRotationsCoords[currentAndNextPieces[0] - 1][fallingPieceState.rotation].forEach(([x, y]) => {
                         columns[x] = Math.max(columns[x], highestPerColumn[x + fallingPieceState.x] - y)
                     })
