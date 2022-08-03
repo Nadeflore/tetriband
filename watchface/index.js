@@ -15,7 +15,7 @@ try {
         g.module = DeviceRuntimeCore.WatchFace({
             init_view() {
                 console.log("Initview called")
-
+                const vibrator = hmSensor.createSensor(hmSensor.id.VIBRATE)
 
                 // Constants and computed values
 
@@ -105,6 +105,7 @@ try {
 
                 // time, game, pause, help, about
                 let state = "game"
+                let vibrationActivated = true
 
                 // Timers
                 let gravityTimer
@@ -211,34 +212,62 @@ try {
                     text: '1546'
                 })
 
-                // Functions definition
+                // Functions definition 
+
+                function vibrate() {
+                    if (vibrationActivated) {
+                        vibrator.stop()
+                        vibrator.scene = 23
+                        vibrator.start()
+                    }
+                }
+
                 function handlePauseMenuClick(info) {
                     if (state == "pause") {
                         if (info.y < 156) {
                             resumeGame()
                         } else if (info.y < 219) {
                             state = "help"
-                            menuWidget.setProperty(hmUI.prop.SRC, `help.png`)
                         } else if (info.y < 279) {
                             state = "about"
-                            menuWidget.setProperty(hmUI.prop.SRC, `about.png`)
                         } else if (info.y < 338) {
                             displayTime()
-                        } else {
-                            toogleVibrations()
                         }
                     } else if (state == "help" || state == "about") {
                         state = "pause"
-                        menuWidget.setProperty(hmUI.prop.SRC, `menu.png`)
                     }
+
+                    refreshPauseMenu()
                 }
 
-                function toogleVibrations() {
-                    // TODO
+                function handleVibrationStatusClick() {
+                    if (state == "pause") {
+                        vibrationActivated = !vibrationActivated
+                        if (vibrationActivated) {
+                            vibrate()
+                        }
+                        refreshPauseMenu()
+                    }
                 }
 
                 function displayTime() {
                     // TODO
+                }
+
+                function refreshPauseMenu() {
+                    let menuDisplayed = true
+                    if (state == "pause") {
+                        menuWidget.setProperty(hmUI.prop.SRC, `menu.png`)
+                        vibrationStatusdWidget.setProperty(hmUI.prop.SRC, `vibration_${vibrationActivated}.png`)
+                    } else if (state == "help") {
+                        menuWidget.setProperty(hmUI.prop.SRC, `help.png`)
+                    } else if (state == "about") {
+                        menuWidget.setProperty(hmUI.prop.SRC, `about.png`)
+                    } else {
+                        menuDisplayed = false
+                    }
+                    menuWidget.setProperty(hmUI.prop.VISIBLE, menuDisplayed)
+                    vibrationStatusdWidget.setProperty(hmUI.prop.VISIBLE, state == "pause")
                 }
 
                 function pauseGame() {
@@ -250,20 +279,23 @@ try {
                             gravityTimer = null
                         }
 
-                        menuWidget.setProperty(hmUI.prop.VISIBLE, true)
                         menuWidget.addEventListener(hmUI.event.CLICK_UP, handlePauseMenuClick)
+                        vibrationStatusdWidget.addEventListener(hmUI.event.CLICK_UP, handleVibrationStatusClick)
                         state = "pause"
+                        refreshPauseMenu()
                     }
                 }
 
                 function resumeGame() {
                     console.log("resume game")
-                    menuWidget.setProperty(hmUI.prop.VISIBLE, false)
                     menuWidget.removeEventListener(hmUI.event.CLICK_UP, handlePauseMenuClick)
+                    vibrationStatusdWidget.removeEventListener(hmUI.event.CLICK_UP, handleVibrationStatusClick)
 
+                    // Enable controls and timer
                     addControlsEventListeners()
                     setGravityTimer()
                     state = "game"
+                    refreshPauseMenu()
                 }
 
                 function generateEmptyPlayArea() {
@@ -381,6 +413,7 @@ try {
                         lines += clearCount
                         level = Math.floor(lines / 5)
                         refreshCounters()
+                        vibrate()
                     }
                 }
 
@@ -572,6 +605,14 @@ try {
                     x: 0,
                     y: 0,
                     src: 'menu.png',
+                    show_level: hmUI.show_level.ONLY_NORMAL
+                })
+
+                const vibrationStatusdWidget = hmUI.createWidget(hmUI.widget.IMG, {
+                    x: 70,
+                    y: 345,
+                    w: 52,
+                    h: 55,
                     show_level: hmUI.show_level.ONLY_NORMAL
                 })
 
