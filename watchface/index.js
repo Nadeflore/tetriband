@@ -246,7 +246,7 @@ try {
                         if (vibrationActivated) {
                             vibrate()
                         }
-                        refreshPauseMenu()
+                        vibrationStatusdWidget.setProperty(hmUI.prop.SRC, `vibration_${vibrationActivated}.png`)
                     }
                 }
 
@@ -258,7 +258,6 @@ try {
                     let menuDisplayed = true
                     if (state == "pause") {
                         menuWidget.setProperty(hmUI.prop.SRC, `menu.png`)
-                        vibrationStatusdWidget.setProperty(hmUI.prop.SRC, `vibration_${vibrationActivated}.png`)
                     } else if (state == "help") {
                         menuWidget.setProperty(hmUI.prop.SRC, `help.png`)
                     } else if (state == "about") {
@@ -609,10 +608,13 @@ try {
                 })
 
                 const vibrationStatusdWidget = hmUI.createWidget(hmUI.widget.IMG, {
-                    x: 70,
-                    y: 345,
-                    w: 52,
-                    h: 55,
+                    x: 0,
+                    pos_x: 72,
+                    y: 338,
+                    pos_y: 7,
+                    w: 192,
+                    h: 152,
+                    src: 'vibration_true.png',
                     show_level: hmUI.show_level.ONLY_NORMAL
                 })
 
