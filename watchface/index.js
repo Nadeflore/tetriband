@@ -102,15 +102,17 @@ try {
                 let level
                 let lines
                 let score
+                let vibrationActivated = true
 
                 // time, game, pause, help, about
-                let state = "game"
-                let vibrationActivated = true
+                let state = "time"
 
                 // Timers
                 let gravityTimer
 
-                // Widgets
+                /**
+                 * Widgets
+                 */
 
                 // background
                 hmUI.createWidget(hmUI.widget.IMG, {
@@ -118,6 +120,64 @@ try {
                     y: 0,
                     src: 'background.png',
                     show_level: hmUI.show_level.ONLY_NORMAL
+                })
+
+                // Time
+                const timeNumbersArray = new Array(10).fill(0).map((_, i) => `numbers/${i}.png`)
+                let timeWidget = hmUI.createWidget(hmUI.widget.IMG_TIME, {
+                    hour_zero: true,
+                    hour_startX: 24,
+                    hour_startY: 101,
+                    hour_array: timeNumbersArray,
+                    hour_space: 36,
+                    minutes_follow: false,
+                    minute_zero: true,
+                    minute_startX: 24,
+                    minute_startY: 263,
+                    minute_array: timeNumbersArray,
+                    minute_space: 36,
+                })
+
+                const dateNumbersArray = new Array(10).fill(0).map((_, i) => `numbers/date_${i}.png`)
+                const dateWidget = hmUI.createWidget(hmUI.widget.IMG_DATE, {
+                    month_startX: 32,
+                    month_startY: 437,
+                    month_unit_sc: 'numbers/date_slash.png',
+                    month_unit_tc: 'numbers/date_slash.png',
+                    month_unit_en: 'numbers/date_slash.png',
+                    month_align: hmUI.align.LEFT,
+                    month_space: 1,
+                    month_zero: 1,
+                    month_en_array: dateNumbersArray,
+                    month_sc_array: dateNumbersArray,
+                    month_tc_array: dateNumbersArray,
+                    day_align: hmUI.align.LEFT,
+                    day_space: 1,
+                    day_zero: 1,
+                    day_follow: 1,
+                    day_en_array: dateNumbersArray,
+                    day_sc_array: dateNumbersArray,
+                    day_tc_array: dateNumbersArray,
+                })
+                const weekArray = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'].map((d) => `numbers/date_${d}.png`)
+                const weekDayWidget = hmUI.createWidget(hmUI.widget.IMG_WEEK, {
+                    x: 114,
+                    y: 437,
+                    // w,h cannot be set, use the actual width and height of the image in the weekArray.
+                    week_en: weekArray,
+                    week_tc: weekArray,
+                    week_sc: weekArray
+                })
+
+                const batteryArray = new Array(4).fill(0).map((_, i) => `battery_${i + 1}.png`)
+                const batteryWidget = hmUI.createWidget(hmUI.widget.IMG_LEVEL, {
+                    x: 44,
+                    y: 26,
+                    w: 31,
+                    h: 19,
+                    image_array: batteryArray,
+                    image_length: 4,
+                    type: hmUI.data_type.BATTERY
                 })
 
                 // hold piece
@@ -129,7 +189,7 @@ try {
                 })
 
                 // Hold disabled
-                const holdDisabled = hmUI.createWidget(hmUI.widget.IMG, {
+                const holdDisabledWidget = hmUI.createWidget(hmUI.widget.IMG, {
                     x: 33,
                     y: 51,
                     src: 'hold_disabled.png',
@@ -183,7 +243,6 @@ try {
                     align_h: hmUI.align.LEFT,
                     align_v: hmUI.align.BOTTOM,
                     text_style: hmUI.text_style.NONE,
-                    text: '18'
                 })
 
                 const linesCountWidget = hmUI.createWidget(hmUI.widget.TEXT, {
@@ -196,7 +255,6 @@ try {
                     align_h: hmUI.align.LEFT,
                     align_v: hmUI.align.BOTTOM,
                     text_style: hmUI.text_style.NONE,
-                    text: '1546'
                 })
 
                 const scoreWidget = hmUI.createWidget(hmUI.widget.TEXT, {
@@ -209,7 +267,6 @@ try {
                     align_h: hmUI.align.LEFT,
                     align_v: hmUI.align.BOTTOM,
                     text_style: hmUI.text_style.NONE,
-                    text: '1546'
                 })
 
                 // Functions definition 
@@ -251,7 +308,34 @@ try {
                 }
 
                 function displayTime() {
-                    // TODO
+                    state = "time"
+                    refreshPauseMenu()
+                    // Disable game widgets
+                    setGameWidgetsVisibility(false)
+
+                    // Show time widgets
+                    setTimeWidgetsVisibility(true)
+
+                    hardDropControl.addEventListener(hmUI.event.CLICK_DOWN, startGame)
+                }
+
+                function setGameWidgetsVisibility(visibility) {
+                    holdPieceWidget.setProperty(hmUI.prop.VISIBLE, visibility);
+                    holdDisabledWidget.setProperty(hmUI.prop.VISIBLE, visibility);
+                    playAreaWidgets.forEach(a => a.forEach(w => w.setProperty(hmUI.prop.VISIBLE, visibility)));
+                    fallingPieceWidget.setProperty(hmUI.prop.VISIBLE, visibility);
+                    hardDropPreviewWidget.setProperty(hmUI.prop.VISIBLE, visibility);
+                    nextPieceWidgets.forEach(w => w.setProperty(hmUI.prop.VISIBLE, visibility));
+                    levelWidget.setProperty(hmUI.prop.VISIBLE, visibility);
+                    linesCountWidget.setProperty(hmUI.prop.VISIBLE, visibility);
+                    scoreWidget.setProperty(hmUI.prop.VISIBLE, visibility);
+                }
+
+                function setTimeWidgetsVisibility(visibility) {
+                    timeWidget.setProperty(hmUI.prop.VISIBLE, visibility);
+                    dateWidget.setProperty(hmUI.prop.VISIBLE, visibility);
+                    weekDayWidget.setProperty(hmUI.prop.VISIBLE, visibility);
+                    batteryWidget.setProperty(hmUI.prop.VISIBLE, visibility);
                 }
 
                 function refreshPauseMenu() {
@@ -322,7 +406,13 @@ try {
                     refreshNextPieces()
                 }
 
-                function resetGame() {
+                function startGame() {
+                    state = "game"
+                    hardDropControl.removeEventListener(hmUI.event.CLICK_DOWN, startGame)
+                    setGameWidgetsVisibility(true)
+                    // Show time widgets
+                    setTimeWidgetsVisibility(false)
+
                     // Reset play area
                     playArea = generateEmptyPlayArea()
                     refreshPlayArea()
@@ -369,7 +459,7 @@ try {
 
                     // Check game over
                     if (!canMoveTo(fallingPieceState)) {
-                        resetGame()
+                        startGame()
                         return
                     }
 
@@ -543,9 +633,9 @@ try {
                     }
 
                     if (holdUsed) {
-                        holdDisabled.setProperty(hmUI.prop.VISIBLE, true)
+                        holdDisabledWidget.setProperty(hmUI.prop.VISIBLE, true)
                     } else {
-                        holdDisabled.setProperty(hmUI.prop.VISIBLE, false)
+                        holdDisabledWidget.setProperty(hmUI.prop.VISIBLE, false)
                     }
                 }
 
@@ -700,11 +790,12 @@ try {
                 }
 
                 hmUI.createWidget(hmUI.widget.WIDGET_DELEGATE, {
-                    pause_call: (function () {/*if (state == "game")*/ pauseGame() })
+                    pause_call: (function () { pauseGame() })
                 })
 
-                // Init game state
-                resetGame()
+                // Init game state  
+                // resetGame()
+                displayTime()
             },
 
             onInit() {
