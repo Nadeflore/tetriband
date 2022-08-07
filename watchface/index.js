@@ -802,36 +802,36 @@ try {
                 console.log("index page.js on init invoke");
                 this.init_view();
 
-                const time = hmSensor.createSensor(hmSensor.id.TIME)
+                // const time = hmSensor.createSensor(hmSensor.id.TIME)
 
-                const fpsWidget = hmUI.createWidget(hmUI.widget.TEXT, {
-                    x: 10,
-                    y: 70,
-                    w: 140,
-                    h: 20,
-                    color: 0xffffff,
-                    text_size: 15,
-                    align_h: hmUI.align.LEFT,
-                    align_v: hmUI.align.BOTTOM,
-                    text_style: hmUI.text_style.NONE
-                })
+                // const fpsWidget = hmUI.createWidget(hmUI.widget.TEXT, {
+                //     x: 10,
+                //     y: 70,
+                //     w: 140,
+                //     h: 20,
+                //     color: 0xffffff,
+                //     text_size: 15,
+                //     align_h: hmUI.align.LEFT,
+                //     align_v: hmUI.align.BOTTOM,
+                //     text_style: hmUI.text_style.NONE
+                // })
 
-                let previousTime = time.utc
-                let fps = 0
-                let counter = 0
+                // let previousTime = time.utc
+                // let fps = 0
+                // let counter = 0
 
-                timer.createTimer(1, 1, option => {
-                    fps++
-                    const currentTime = time.utc
-                    if (currentTime - previousTime > 1000) {
-                        fpsWidget.setProperty(hmUI.prop.TEXT, String(fps))
-                        fps = 0
-                        previousTime = currentTime
-                    } else {
-                        // Forcce screen update
-                        fpsWidget.setProperty(hmUI.prop.X, 10 + (counter++) % 4)
-                    }
-                })
+                // timer.createTimer(1, 1, option => {
+                //     fps++
+                //     const currentTime = time.utc
+                //     if (currentTime - previousTime > 1000) {
+                //         fpsWidget.setProperty(hmUI.prop.TEXT, String(fps))
+                //         fps = 0
+                //         previousTime = currentTime
+                //     } else {
+                //         // Forcce screen update
+                //         fpsWidget.setProperty(hmUI.prop.X, 10 + (counter++) % 4)
+                //     }
+                // })
             },
 
             onReady() {
