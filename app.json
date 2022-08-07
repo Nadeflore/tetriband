@@ -10,7 +10,7 @@
         },
         "vender": "Nadeflore",
         "description": "https://github.com/Nadeflore/tetriband",
-        "icon": "images/background.png"
+        "icon": "preview.png"
     },
     "permissions": [
         "gps"
@@ -24,13 +24,13 @@
     },
     "i18n": {
         "en-US": {
-            "icon": "images/background.png"
+            "icon": "preview.png"
         },
         "zh-CN": {
-            "icon": "images/background.png"
+            "icon": "preview.png"
         },
         "zh-TW": {
-            "icon": "images/background.png"
+            "icon": "preview.png"
         }
     },
     "defaultLanguage": "en-US",
