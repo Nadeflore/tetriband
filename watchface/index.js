@@ -790,11 +790,7 @@ try {
                 }
 
                 hmUI.createWidget(hmUI.widget.WIDGET_DELEGATE, {
-                    resume_call: (function () {
-                        if (state == "game") {
-                            timer.createTimer(1000, null, option => { pauseGame() })
-                        }
-                    })
+                    resume_call: (function () { pauseGame() })
                 })
 
                 // Init game state  
