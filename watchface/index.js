@@ -790,7 +790,7 @@ try {
                 }
 
                 hmUI.createWidget(hmUI.widget.WIDGET_DELEGATE, {
-                    resume_call: (function () { pauseGame() })
+                    pause_call: (function () { pauseGame() })
                 })
 
                 // Init game state  
