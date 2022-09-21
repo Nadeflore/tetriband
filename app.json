@@ -6,7 +6,7 @@
         "appType": "watchface",
         "version": {
             "code": 1,
-            "name": "0.1"
+            "name": "0.2"
         },
         "vender": "Nadeflore",
         "description": "https://github.com/Nadeflore/tetriband",

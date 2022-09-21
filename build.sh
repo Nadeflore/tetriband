@@ -25,4 +25,4 @@ cp ../app.json .
 cp -r ../watchface .
 
 
-zip -r tetriband_v0_1.zip .
+zip -r tetriband_v0_2.bin .
